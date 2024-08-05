@@ -1,82 +1,54 @@
+#include <HC_SR04/HC_SR04.h>
 #include <Arduino.h>
 
-class HC_SR04
+typedef struct Motor
+{
+    uint8_t in1;
+    uint8_t in2;
+    uint8_t enablePin;
+}Motor;
+
+class LM298
 {
     private:
-        uint8_t echoPin;
-        uint8_t triggerPin;
-        static HC_SR04* instance;
-        bool isReaded = false;
-        volatile long duration;
-
-        static void isrCbk()
-        {
-            if (instance)
-            {
-                instance->handleInterrupt();
-            }
-        }
-
-        void handleInterrupt()
-        {
-            long nowTime = micros();
-            if(digitalRead(this->echoPin))
-            {
-                this->duration = nowTime;
-                this->isReaded = false;
-            }
-            else
-            {
-                this->duration = nowTime - this->duration;
-                this->isReaded = true;
-            }
-        }
+        Motor right;
+        Motor left;
     public:
-        uint16_t distance = 0;
-        HC_SR04(uint8_t echoPin, uint8_t triggerPin)
+        LM298(uint8_t enableA, uint8_t in1, uint8_t in2, uint8_t in3, uint8_t in4, uint8_t enableB)
         {
-            this->echoPin = echoPin;
-            this->triggerPin = triggerPin;
+            this->right.enablePin = enableA;
+            this->right.in1 = in1;
+            this->right.in2 = in2;
+            this->left.enablePin = enableB;
+            this->left.in1 = in3;
+            this->left.in2 = in4;
         }
         void setup()
         {
-            pinMode(this->echoPin, INPUT);
-            pinMode(this->triggerPin, OUTPUT);
-            digitalWrite(this->triggerPin, LOW);
-            this->instance = this;
-            attachInterrupt(digitalPinToInterrupt(this->echoPin), isrCbk, CHANGE);
-            
-            digitalWrite(this->triggerPin, LOW);
-            delayMicroseconds(2);
-            digitalWrite(this->triggerPin, HIGH);
-            delayMicroseconds(10);
-            digitalWrite(this->triggerPin, LOW);
-            Serial.println("Setup ended");
-        }
-        void update()
-        {
-            if(this->isReaded)
-            {
-                this->distance = duration * 0.034 / 2;
-                digitalWrite(this->triggerPin, LOW);
-                delayMicroseconds(2);
-                digitalWrite(this->triggerPin, HIGH);
-                delayMicroseconds(10);
-                digitalWrite(this->triggerPin, LOW);
-            }
+            pinMode(this->right.enablePin, OUTPUT);
+            pinMode(this->right.in1, OUTPUT);
+            pinMode(this->right.in2, OUTPUT);
+            pinMode(this->left.enablePin, OUTPUT);
+            pinMode(this->left.in1, OUTPUT);
+            pinMode(this->left.in2, OUTPUT);
+
+            digitalWrite(this->right.enablePin, HIGH);
+            digitalWrite(this->right.in1, HIGH);
+            digitalWrite(this->right.in2, LOW);
+
+            digitalWrite(this->left.enablePin, LOW);
+            digitalWrite(this->left.in1, HIGH);
+            digitalWrite(this->left.in2, LOW);
         }
 };
 
-HC_SR04* HC_SR04::instance = nullptr;
-
-volatile long duration;
-volatile bool isReaded = false;
-
 HC_SR04 hc01(19, 18);
+LM298 lm298(13, 12, 14, 27, 26, 25);
 
 void setup()
 {
     hc01.setup();
+    lm298.setup();
     Serial.begin(9600);
 
     pinMode(2, OUTPUT);
