@@ -1,82 +1,91 @@
 #include <Arduino.h>
 
-//HC-SR04
-const int ECHO = 19;
-const int TRIGGER = 18;
+class HC_SR04
+{
+    private:
+        uint8_t echoPin;
+        uint8_t triggerPin;
+        static HC_SR04* instance;
+        bool isReaded = false;
+        volatile long duration;
 
-const int ENABLE_A = 13;
-const int IN1 = 12;
-const int IN2 = 14;
-const int IN3 = 27;
-const int IN4 = 26; 
-const int ENABLE_B = 25; 
+        static void isrCbk()
+        {
+            if (instance)
+            {
+                instance->handleInterrupt();
+            }
+        }
+
+        void handleInterrupt()
+        {
+            long nowTime = micros();
+            if(digitalRead(this->echoPin))
+            {
+                this->duration = nowTime;
+                this->isReaded = false;
+            }
+            else
+            {
+                this->duration = nowTime - this->duration;
+                this->isReaded = true;
+            }
+        }
+    public:
+        uint16_t distance = 0;
+        HC_SR04(uint8_t echoPin, uint8_t triggerPin)
+        {
+            this->echoPin = echoPin;
+            this->triggerPin = triggerPin;
+        }
+        void setup()
+        {
+            pinMode(this->echoPin, INPUT);
+            pinMode(this->triggerPin, OUTPUT);
+            digitalWrite(this->triggerPin, LOW);
+            this->instance = this;
+            attachInterrupt(digitalPinToInterrupt(this->echoPin), isrCbk, CHANGE);
+            
+            digitalWrite(this->triggerPin, LOW);
+            delayMicroseconds(2);
+            digitalWrite(this->triggerPin, HIGH);
+            delayMicroseconds(10);
+            digitalWrite(this->triggerPin, LOW);
+            Serial.println("Setup ended");
+        }
+        void update()
+        {
+            if(this->isReaded)
+            {
+                this->distance = duration * 0.034 / 2;
+                digitalWrite(this->triggerPin, LOW);
+                delayMicroseconds(2);
+                digitalWrite(this->triggerPin, HIGH);
+                delayMicroseconds(10);
+                digitalWrite(this->triggerPin, LOW);
+            }
+        }
+};
+
+HC_SR04* HC_SR04::instance = nullptr;
 
 volatile long duration;
 volatile bool isReaded = false;
 
-void ECHO_CBK()
-{
-    long nowTime = micros();
-    if(digitalRead(ECHO))
-    {
-        duration = nowTime;
-        isReaded = false;
-    }
-    else
-    {
-        duration = nowTime - duration;
-        isReaded = true;
-    }
-}
+HC_SR04 hc01(19, 18);
 
 void setup()
 {
+    hc01.setup();
     Serial.begin(9600);
 
-    pinMode(ECHO, INPUT);
-    pinMode(TRIGGER, OUTPUT);
     pinMode(2, OUTPUT);
-    digitalWrite(TRIGGER, LOW);
-    attachInterrupt(digitalPinToInterrupt(ECHO), ECHO_CBK, CHANGE);
-
-    //Motors
-    pinMode(ENABLE_A, OUTPUT);
-    digitalWrite(ENABLE_A, HIGH);
-    pinMode(ENABLE_B, OUTPUT);
-    digitalWrite(ENABLE_B, HIGH);
-    pinMode(IN1, OUTPUT);
-    pinMode(IN2, OUTPUT);
-    pinMode(IN3, OUTPUT);
-    pinMode(IN4, OUTPUT);
-    
-    digitalWrite(IN1, HIGH);
-    digitalWrite(IN2, LOW);
-    
-    digitalWrite(IN3, HIGH);
-    digitalWrite(IN4, LOW);
-}
-
-void getDistance()
-{
-    digitalWrite(2, !digitalRead(2));
-    delay(100);
 }
 
 void loop()
 {
-    getDistance();
-    if(isReaded)
-    {
-        int distance = duration * 0.034 / 2;
-        Serial.println(distance);
-        digitalWrite(TRIGGER, LOW);
-        delayMicroseconds(10);
-        digitalWrite(TRIGGER, HIGH);
-        delayMicroseconds(10);
-        digitalWrite(TRIGGER, LOW);
-    }
-    // if(distance <= 50)
-    //   digitalWrite(ENABLE_B, LOW);
-    // else
-    //   digitalWrite(ENABLE_B, HIGH);
+    digitalWrite(2, !digitalRead(2));
+    delay(100);
+    hc01.update();
+    Serial.println(hc01.distance);
 }
