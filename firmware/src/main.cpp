@@ -2,34 +2,7 @@
 
 #include <HC_SR04/HC_SR04.h>
 #include <LM298/LM298.h>
-
-class Logger
-{
-    private:
-        uint8_t pin;
-        uint8_t freq;
-        long time;
-    public:
-        Logger(uint8_t pin, uint8_t freq)
-        {
-            this->pin = pin;
-            this->freq = freq;
-        }
-        void setup()
-        {
-            pinMode(this->pin, OUTPUT);
-            this->time = millis();
-            digitalWrite(this->pin, HIGH);
-        }
-        void update()
-        {
-            if(millis() > this->time + ((1000/this->freq)/2))
-            {
-                digitalWrite(this->pin, !digitalRead(this->pin));
-                time = millis();
-            }
-        }
-};
+#include <Logger/Logger.h>
 
 Logger logger(2, 10);
 HC_SR04 hc01(19, 18);
