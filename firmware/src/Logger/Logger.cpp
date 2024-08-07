@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <Logger/Logger.h>
+#include <Logger/Logger.hpp>
 
 Logger::Logger(uint8_t pin, uint8_t freq)
 {

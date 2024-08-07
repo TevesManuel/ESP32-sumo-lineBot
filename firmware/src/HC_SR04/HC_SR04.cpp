@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#include <HC_SR04/HC_SR04.h>
+#include <HC_SR04/HC_SR04.hpp>
 
 HC_SR04* HC_SR04::instance = nullptr;
 
@@ -51,8 +51,6 @@ void HC_SR04::update()
     if(this->isReaded)
     {
         this->distance = duration * 0.034 / 2;
-        digitalWrite(this->triggerPin, LOW);
-        delayMicroseconds(2);
         digitalWrite(this->triggerPin, HIGH);
         delayMicroseconds(10);
         digitalWrite(this->triggerPin, LOW);
