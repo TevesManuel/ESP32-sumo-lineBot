@@ -12,6 +12,9 @@ TCRT5000 frontTCRT5000(23);
 
 #define POWER 100
 
+bool isBoxer = true;
+bool movingForward = true;
+
 void setup()
 {
     Serial.begin(9600);
@@ -19,29 +22,68 @@ void setup()
     hc01.setup();
     lm298.setup();
     lm298.setMotorDirection(AllMotors, Forward);
-    lm298.setMotorState(AllMotors, HIGH, POWER);
+    lm298.setMotorState(AllMotors, LOW, POWER);
     logger.setup();
+    setCpuFrequencyMhz(240);
+    unsigned long initTime = millis();
+    while((millis() - initTime) < 5000)
+    {
+        if(!frontTCRT5000.read())
+        {
+            isBoxer = false;
+            break;
+        }
+    }
 }
 
 void loop()
 {
-    hc01.update();
-    Serial.print("[");
-    Serial.print(millis());
-    Serial.print("ms] ");
-    Serial.println(hc01.distance);
-    Serial.println(frontTCRT5000.read());
-    if(hc01.distance < 20)
+    if(isBoxer)
     {
-        lm298.setMotorState(AllMotors, HIGH, 255);
-    }
-    if(frontTCRT5000.read())
-    {
-        lm298.setMotorState(AllMotors, LOW, POWER);
+        hc01.update();
+        // Serial.println(hc01.distance);
+
+        if(hc01.distance < 20)
+        {
+            if(!movingForward)
+            {
+                lm298.setMotorState(AllMotors, LOW, 0);
+                delay(100);
+                lm298.setMotorDirection(AllMotors, Forward);
+                lm298.setMotorState(AllMotors, HIGH, 255);
+                movingForward = true;
+            }
+        }
+        else
+        {
+            if(movingForward)
+            {
+                lm298.setMotorState(AllMotors, LOW, 0);
+                lm298.setMotorState(LeftMotor, HIGH, 90);
+                movingForward = false;
+            }
+        }
     }
     else
     {
-        lm298.setMotorState(AllMotors, HIGH, POWER);
+        if(!frontTCRT5000.read())
+        {
+            if(movingForward)
+            {
+                lm298.setMotorState(RightMotor, LOW, POWER);
+                lm298.setMotorDirection(LeftMotor, Backward);
+                movingForward = false;
+            }
+        }
+        else
+        {
+            if(!movingForward)
+            {
+                lm298.setMotorState(AllMotors, HIGH, POWER);
+                lm298.setMotorDirection(LeftMotor, Forward);
+                movingForward = true;
+            }
+        }   
     }
     logger.update();
 }

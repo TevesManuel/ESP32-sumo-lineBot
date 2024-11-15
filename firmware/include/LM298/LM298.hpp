@@ -30,5 +30,4 @@ class LM298
         void setup();
         void setMotorDirection(MotorSpecific motor, MotorDirection direction);
         void setMotorState(MotorSpecific motor, bool state, uint8_t power);
-
 };
