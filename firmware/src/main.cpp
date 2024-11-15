@@ -17,14 +17,15 @@ bool movingForward = true;
 
 void setup()
 {
+    setCpuFrequencyMhz(240);
     Serial.begin(9600);
     frontTCRT5000.setup();
     hc01.setup();
     lm298.setup();
     lm298.setMotorDirection(AllMotors, Forward);
-    lm298.setMotorState(AllMotors, LOW, POWER);
+    lm298.setMotorState(AllMotors, 0);
     logger.setup();
-    setCpuFrequencyMhz(240);
+    //Select mode
     unsigned long initTime = millis();
     while((millis() - initTime) < 5000)
     {
@@ -41,16 +42,15 @@ void loop()
     if(isBoxer)
     {
         hc01.update();
-        // Serial.println(hc01.distance);
 
         if(hc01.distance < 20)
         {
             if(!movingForward)
             {
-                lm298.setMotorState(AllMotors, LOW, 0);
+                lm298.setMotorState(AllMotors, 0);
                 delay(100);
                 lm298.setMotorDirection(AllMotors, Forward);
-                lm298.setMotorState(AllMotors, HIGH, 255);
+                lm298.setMotorState(AllMotors, 255);
                 movingForward = true;
             }
         }
@@ -58,8 +58,8 @@ void loop()
         {
             if(movingForward)
             {
-                lm298.setMotorState(AllMotors, LOW, 0);
-                lm298.setMotorState(LeftMotor, HIGH, 90);
+                lm298.setMotorState(AllMotors, 0);
+                lm298.setMotorState(LeftMotor, 100);
                 movingForward = false;
             }
         }
@@ -70,7 +70,7 @@ void loop()
         {
             if(movingForward)
             {
-                lm298.setMotorState(RightMotor, LOW, POWER);
+                lm298.setMotorState(RightMotor, 0);
                 lm298.setMotorDirection(LeftMotor, Backward);
                 movingForward = false;
             }
@@ -79,7 +79,7 @@ void loop()
         {
             if(!movingForward)
             {
-                lm298.setMotorState(AllMotors, HIGH, POWER);
+                lm298.setMotorState(AllMotors, POWER);
                 lm298.setMotorDirection(LeftMotor, Forward);
                 movingForward = true;
             }
