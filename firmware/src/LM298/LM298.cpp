@@ -73,19 +73,19 @@ void LM298::setMotorDirection(MotorSpecific motor, MotorDirection direction)
         }
     }
 }
-void LM298::setMotorState(MotorSpecific motor, bool state)
+void LM298::setMotorState(MotorSpecific motor, bool state, uint8_t power)
 {
     if(motor == LeftMotor)
     {
-        digitalWrite(this->left.enablePin, state);
+        analogWrite(this->left.enablePin, state * power);
     }
     else if(motor == RightMotor)
     {
-        digitalWrite(this->right.enablePin, state);
+        analogWrite(this->right.enablePin, state * power);
     }
     else
     {
-        digitalWrite(this->left.enablePin, state);
-        digitalWrite(this->right.enablePin, state);
+        analogWrite(this->left.enablePin, state * power);
+        analogWrite(this->right.enablePin, state * power);
     }
 }

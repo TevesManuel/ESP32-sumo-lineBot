@@ -29,5 +29,6 @@ class LM298
         LM298(uint8_t enableA, uint8_t in1, uint8_t in2, uint8_t in3, uint8_t in4, uint8_t enableB);
         void setup();
         void setMotorDirection(MotorSpecific motor, MotorDirection direction);
-        void setMotorState(MotorSpecific motor, bool state);
+        void setMotorState(MotorSpecific motor, bool state, uint8_t power);
+
 };

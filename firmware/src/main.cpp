@@ -10,6 +10,8 @@ HC_SR04 hc01(4, 15);
 LM298 lm298(13, 12, 14, 27, 26, 25);
 TCRT5000 frontTCRT5000(23);
 
+#define POWER 100
+
 void setup()
 {
     Serial.begin(9600);
@@ -17,6 +19,7 @@ void setup()
     hc01.setup();
     lm298.setup();
     lm298.setMotorDirection(AllMotors, Forward);
+    lm298.setMotorState(AllMotors, HIGH, POWER);
     logger.setup();
 }
 
@@ -28,13 +31,17 @@ void loop()
     Serial.print("ms] ");
     Serial.println(hc01.distance);
     Serial.println(frontTCRT5000.read());
-    if(hc01.distance < 50)
+    if(hc01.distance < 20)
     {
-        lm298.setMotorState(AllMotors, LOW);
+        lm298.setMotorState(AllMotors, HIGH, 255);
+    }
+    if(frontTCRT5000.read())
+    {
+        lm298.setMotorState(AllMotors, LOW, POWER);
     }
     else
     {
-        lm298.setMotorState(AllMotors, HIGH);
+        lm298.setMotorState(AllMotors, HIGH, POWER);
     }
     logger.update();
 }
